@@ -29,18 +29,23 @@ export async function POST(req: NextRequest) {
         "intent": "resume" or "other"
     }
 
-    Respond only with valid JSON. There should be no text or backticks before or after the JSON.`
+    Respond ONLY with the raw JSON object, no markdown formatting, no backticks, no additional text. Example response:
+    {"intent": "resume"}`
 
     const imageTypeResponse = await generateText({
       model: google("gemini-2.0-flash"),
-      prompt: imageTypePrompt,
-      images: [dataURI],
+      prompt: `${imageTypePrompt}\n\nImage data: ${dataURI}`,
     })
 
     // Parse the image type response
     let imageType
     try {
-      imageType = JSON.parse(imageTypeResponse.text.trim())
+      // Clean the response by removing any markdown formatting
+      const cleanResponse = imageTypeResponse.text
+        .replace(/```json/g, '')
+        .replace(/```/g, '')
+        .trim()
+      imageType = JSON.parse(cleanResponse)
     } catch (error) {
       console.error("Error parsing image type JSON:", error)
       imageType = { intent: "other" }
@@ -62,8 +67,7 @@ export async function POST(req: NextRequest) {
 
       const response = await generateText({
         model: google("gemini-2.0-flash"),
-        prompt: resumePrompt,
-        images: [dataURI],
+        prompt: `${resumePrompt}\n\nImage data: ${dataURI}`,
       })
 
       finalResponse = response.text

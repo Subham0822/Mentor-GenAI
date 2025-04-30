@@ -9,7 +9,6 @@ export const metadata: Metadata = {
   title: "Career Mentor AI - Your Personal Career Guide",
   description:
     "Get personalized career advice, resume analysis, and job recommendations with our AI-powered career mentor.",
-    generator: 'v0.dev'
 }
 
 export default function RootLayout({
@@ -18,8 +17,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>{children}</body>
+    <html lang="en" className="dark">
+      <body className={`${inter.className} bg-gray-950 text-white`}>{children}</body>
     </html>
   )
 }

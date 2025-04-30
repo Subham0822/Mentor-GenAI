@@ -27,7 +27,8 @@ export async function POST(req: NextRequest) {
     - "intent": Must be one of "career_guidance", "job_search", or "other"
     - "query": If intent is "job_search", extract the key search terms (e.g., job title, location, or industry). Otherwise, use null.
 
-    Respond only with valid JSON. There should be NO text or backticks before or after the JSON.`
+    Respond ONLY with the raw JSON object, no markdown formatting, no backticks, no additional text. Example response:
+    {"intent": "career_guidance", "query": null}`
 
     const intentResponse = await generateText({
       model: google("gemini-2.0-flash"),
@@ -37,7 +38,12 @@ export async function POST(req: NextRequest) {
     // Parse the intent response
     let intent
     try {
-      intent = JSON.parse(intentResponse.text.trim())
+      // Clean the response by removing any markdown formatting
+      const cleanResponse = intentResponse.text
+        .replace(/```json/g, '')
+        .replace(/```/g, '')
+        .trim()
+      intent = JSON.parse(cleanResponse)
     } catch (error) {
       console.error("Error parsing intent JSON:", error)
       intent = { intent: "other", query: null }
@@ -97,8 +103,10 @@ export async function POST(req: NextRequest) {
 }
 
 // Function to get job listings from RapidAPI
-async function getJobListings(query: string): Promise<string> {
-  if (!query) return "No specific job search terms provided."
+async function getJobListings(query: string | null): Promise<string> {
+  if (!query || typeof query !== 'string') {
+    return "No specific job search terms provided."
+  }
 
   const formattedQuery = query.replace(/\s+/g, "+")
 
